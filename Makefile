@@ -16,4 +16,7 @@ sqlc:
 test:
 	go test -v -cover ./...
 
-.PHONY: createdb dropdb migratedbup migratedbdown sqlc test
+server:
+	go run main.go
+
+.PHONY: createdb dropdb migratedbup migratedbdown sqlc test server
