@@ -1,6 +1,7 @@
 CREATE TYPE "Currency" AS ENUM (
   'USD',
-  'EUR'
+  'EUR',
+  'CAD'
 );
 
 CREATE TABLE "accounts" (
