@@ -75,5 +75,6 @@ type Transfer struct {
 	ToAccountID   int64 `json:"to_account_id"`
 	// must be positive
 	Amount    int64        `json:"amount"`
+	Currency  string       `json:"currency"`
 	CreatedAt sql.NullTime `json:"created_at"`
 }

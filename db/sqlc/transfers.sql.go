@@ -11,27 +11,34 @@ import (
 
 const createTransfers = `-- name: CreateTransfers :one
 INSERT INTO transfers (
-  from_account_id, to_account_id, amount
+  from_account_id, to_account_id, currency, amount
 ) VALUES (
-  $1, $2, $3
+  $1, $2, $3, $4
 )
-RETURNING id, from_account_id, to_account_id, amount, created_at
+RETURNING id, from_account_id, to_account_id, amount, currency, created_at
 `
 
 type CreateTransfersParams struct {
-	FromAccountID int64 `json:"from_account_id"`
-	ToAccountID   int64 `json:"to_account_id"`
-	Amount        int64 `json:"amount"`
+	FromAccountID int64  `json:"from_account_id"`
+	ToAccountID   int64  `json:"to_account_id"`
+	Currency      string `json:"currency"`
+	Amount        int64  `json:"amount"`
 }
 
 func (q *Queries) CreateTransfers(ctx context.Context, arg CreateTransfersParams) (Transfer, error) {
-	row := q.queryRow(ctx, q.createTransfersStmt, createTransfers, arg.FromAccountID, arg.ToAccountID, arg.Amount)
+	row := q.queryRow(ctx, q.createTransfersStmt, createTransfers,
+		arg.FromAccountID,
+		arg.ToAccountID,
+		arg.Currency,
+		arg.Amount,
+	)
 	var i Transfer
 	err := row.Scan(
 		&i.ID,
 		&i.FromAccountID,
 		&i.ToAccountID,
 		&i.Amount,
+		&i.Currency,
 		&i.CreatedAt,
 	)
 	return i, err
@@ -48,7 +55,7 @@ func (q *Queries) DeleteTransfers(ctx context.Context, id int64) error {
 }
 
 const getTransfers = `-- name: GetTransfers :one
-SELECT id, from_account_id, to_account_id, amount, created_at FROM transfers
+SELECT id, from_account_id, to_account_id, amount, currency, created_at FROM transfers
 WHERE id = $1 LIMIT 1
 `
 
@@ -60,13 +67,14 @@ func (q *Queries) GetTransfers(ctx context.Context, id int64) (Transfer, error) 
 		&i.FromAccountID,
 		&i.ToAccountID,
 		&i.Amount,
+		&i.Currency,
 		&i.CreatedAt,
 	)
 	return i, err
 }
 
 const listTransfers = `-- name: ListTransfers :many
-SELECT id, from_account_id, to_account_id, amount, created_at FROM transfers
+SELECT id, from_account_id, to_account_id, amount, currency, created_at FROM transfers
 ORDER BY name
 LIMIT $1
 OFFSET $2
@@ -91,6 +99,7 @@ func (q *Queries) ListTransfers(ctx context.Context, arg ListTransfersParams) ([
 			&i.FromAccountID,
 			&i.ToAccountID,
 			&i.Amount,
+			&i.Currency,
 			&i.CreatedAt,
 		); err != nil {
 			return nil, err
@@ -110,7 +119,7 @@ const updateTransfersAmount = `-- name: UpdateTransfersAmount :one
 UPDATE transfers 
 SET amount = $2
 WHERE id = $1
-RETURNING id, from_account_id, to_account_id, amount, created_at
+RETURNING id, from_account_id, to_account_id, amount, currency, created_at
 `
 
 type UpdateTransfersAmountParams struct {
@@ -126,6 +135,7 @@ func (q *Queries) UpdateTransfersAmount(ctx context.Context, arg UpdateTransfers
 		&i.FromAccountID,
 		&i.ToAccountID,
 		&i.Amount,
+		&i.Currency,
 		&i.CreatedAt,
 	)
 	return i, err
