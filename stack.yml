@@ -2,7 +2,7 @@
 version: '3.9'
 services:
 
-  db:
+  postgres:
     image: postgres
     restart: "no"
     volumes:
@@ -21,21 +21,15 @@ services:
     ports:
       - 8888:8888
     environment:
-      DB_SOURCE: postgresql://postgres:123%40123A@db:5432/simple_bank?sslmode=disable
+      DB_SOURCE: postgresql://postgres:123%40123A@postgres:5432/simple_bank?sslmode=disable
       GIN_MODE: release
     depends_on:
-      - db
+      - postgres
     entrypoint:
       [
         "/app/wait-for.sh",
-        "db:5432",
+        "postgres:5432",
         "--",
         "/app/start.sh"
       ]
     command: [ "/app/main" ]
-    
-  adminer:
-    image: adminer
-    restart: "no"
-    ports:
-      - 8080:8080
