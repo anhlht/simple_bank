@@ -1,9 +1,8 @@
 # Use postgres/example user/password credentials
-version: '3.1'
-
+version: '3.9'
 services:
 
-  db:
+  postgres:
     image: postgres
     restart: "no"
     volumes:
@@ -14,8 +13,23 @@ services:
       POSTGRES_PASSWORD: 123@123A
       PGDATA: /var/lib/postgresql/data/pgdata 
 
-  adminer:
-    image: adminer
-    restart: "no"
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: azsimplebankapi
     ports:
-      - 8080:8080
+      - 8888:8888
+    environment:
+      DB_SOURCE: postgresql://postgres:123%40123A@postgres:5432/simple_bank?sslmode=disable
+      GIN_MODE: release
+    depends_on:
+      - postgres
+    entrypoint:
+      [
+        "/app/wait-for.sh",
+        "postgres:5432",
+        "--",
+        "/app/start.sh"
+      ]
+    command: [ "/app/main" ]
