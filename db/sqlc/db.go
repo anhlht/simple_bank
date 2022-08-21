@@ -33,6 +33,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	if q.createEntriesStmt, err = db.PrepareContext(ctx, createEntries); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateEntries: %w", err)
 	}
+	if q.createNewSessionStmt, err = db.PrepareContext(ctx, createNewSession); err != nil {
+		return nil, fmt.Errorf("error preparing query CreateNewSession: %w", err)
+	}
 	if q.createTransfersStmt, err = db.PrepareContext(ctx, createTransfers); err != nil {
 		return nil, fmt.Errorf("error preparing query CreateTransfers: %w", err)
 	}
@@ -56,6 +59,9 @@ func Prepare(ctx context.Context, db DBTX) (*Queries, error) {
 	}
 	if q.getEntriesStmt, err = db.PrepareContext(ctx, getEntries); err != nil {
 		return nil, fmt.Errorf("error preparing query GetEntries: %w", err)
+	}
+	if q.getSesionStmt, err = db.PrepareContext(ctx, getSesion); err != nil {
+		return nil, fmt.Errorf("error preparing query GetSesion: %w", err)
 	}
 	if q.getTransfersStmt, err = db.PrepareContext(ctx, getTransfers); err != nil {
 		return nil, fmt.Errorf("error preparing query GetTransfers: %w", err)
@@ -101,6 +107,11 @@ func (q *Queries) Close() error {
 			err = fmt.Errorf("error closing createEntriesStmt: %w", cerr)
 		}
 	}
+	if q.createNewSessionStmt != nil {
+		if cerr := q.createNewSessionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing createNewSessionStmt: %w", cerr)
+		}
+	}
 	if q.createTransfersStmt != nil {
 		if cerr := q.createTransfersStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing createTransfersStmt: %w", cerr)
@@ -139,6 +150,11 @@ func (q *Queries) Close() error {
 	if q.getEntriesStmt != nil {
 		if cerr := q.getEntriesStmt.Close(); cerr != nil {
 			err = fmt.Errorf("error closing getEntriesStmt: %w", cerr)
+		}
+	}
+	if q.getSesionStmt != nil {
+		if cerr := q.getSesionStmt.Close(); cerr != nil {
+			err = fmt.Errorf("error closing getSesionStmt: %w", cerr)
 		}
 	}
 	if q.getTransfersStmt != nil {
@@ -223,6 +239,7 @@ type Queries struct {
 	addAccountsBalanceStmt    *sql.Stmt
 	createAccountsStmt        *sql.Stmt
 	createEntriesStmt         *sql.Stmt
+	createNewSessionStmt      *sql.Stmt
 	createTransfersStmt       *sql.Stmt
 	createUsersStmt           *sql.Stmt
 	deleteAccountsStmt        *sql.Stmt
@@ -231,6 +248,7 @@ type Queries struct {
 	getAccountsStmt           *sql.Stmt
 	getAccountsForUpdateStmt  *sql.Stmt
 	getEntriesStmt            *sql.Stmt
+	getSesionStmt             *sql.Stmt
 	getTransfersStmt          *sql.Stmt
 	getUsersStmt              *sql.Stmt
 	listAccountsStmt          *sql.Stmt
@@ -248,6 +266,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		addAccountsBalanceStmt:    q.addAccountsBalanceStmt,
 		createAccountsStmt:        q.createAccountsStmt,
 		createEntriesStmt:         q.createEntriesStmt,
+		createNewSessionStmt:      q.createNewSessionStmt,
 		createTransfersStmt:       q.createTransfersStmt,
 		createUsersStmt:           q.createUsersStmt,
 		deleteAccountsStmt:        q.deleteAccountsStmt,
@@ -256,6 +275,7 @@ func (q *Queries) WithTx(tx *sql.Tx) *Queries {
 		getAccountsStmt:           q.getAccountsStmt,
 		getAccountsForUpdateStmt:  q.getAccountsForUpdateStmt,
 		getEntriesStmt:            q.getEntriesStmt,
+		getSesionStmt:             q.getSesionStmt,
 		getTransfersStmt:          q.getTransfersStmt,
 		getUsersStmt:              q.getUsersStmt,
 		listAccountsStmt:          q.listAccountsStmt,
